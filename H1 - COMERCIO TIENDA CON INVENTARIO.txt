@@ -1,0 +1,38 @@
+H1 VARIANTE 4 · COMERCIO — "Tienda con inventario" 🛒
+
+ACTORES Y MODULOS
+
+Actores
+------------------------------------------
+Clientes
+Cajero
+Administrador de Inventario
+Dueño de la tienda /  Administrador
+
+Modulos de sistema
+-------------------------------------------
+Losgin
+Modulo de catalogo de productos
+Control de inventario
+Venta y caja
+facturacion y comprobantes
+reportes
+
+RECETA 4 PASOS
+
+Producto
+nombre, sku, precio, stock, categoria.
+actualizar_stock, cambiar_precio, verificar_disponibilidad
+
+Inventario
+almacen, stock_minimo, lote, ubicacion
+reabastecer, registrar_merma, consultar_alerta
+
+Venta
+id_venta, fecha, total, metodo_pago, estado
+procesar_pago, cancelar, completar.
+
+Factura
+numero_factura, rfc_cliente, subtotal, impuestos
+generar_pdf, enviar_correo, anular
+
