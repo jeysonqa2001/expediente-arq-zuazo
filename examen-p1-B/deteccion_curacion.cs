@@ -8,11 +8,17 @@
 // 1. ISP (Segmentacion de Interfacees), Se separo IEmpleadoDeFerreteria en 2: IRegistradorDePedidos y IEncargadoDeFerreteria.
 // 2. DIP (Inversion de Dependencias), Se crearon 2 interfaces: IRepositorioDePedidos y IServiciosDeNotificacion, conectandolas a GFestorDePedidos.
 
+//Refactor: Jeyson Wilfredo Zuazo Mamani
 namespace Parcial1.Ferreteria;
 
+// 1. Cura ISP: Se separo las interfaces
 public interface IEmpleadoDeFerreteria
 {
     void RegistrarPedido(string material, int cantidad);
+}
+
+public interface IEncargadoDeFerreteria : IRegistradorDePedidos
+{
     void AutorizarVentaAlPorMayor(string material);
     void AjustarPrecio(string material, decimal nuevoPrecio);
     void VerReporteDeCompras();
@@ -34,12 +40,17 @@ public class Vendedor : IEmpleadoDeFerreteria
 {
     public void RegistrarPedido(string material, int cantidad)
         => Console.WriteLine($"[VEND] Pedido: {cantidad} x {material}");
-    public void AutorizarVentaAlPorMayor(string material)
-        => throw new NotSupportedException("Un vendedor no autoriza ventas al por mayor.");
-    public void AjustarPrecio(string material, decimal nuevoPrecio)
-        => throw new NotSupportedException("Un vendedor no ajusta precios.");
-    public void VerReporteDeCompras()
-        => throw new NotSupportedException("Un vendedor no ve reportes.");
+}
+
+// Abstraciones iniciales DIP
+public interface IRepositorioDePedidos
+{
+    void GuardarPedido(string cliente, string material, int cantidad, decimal total);
+}
+
+public interface IServiciosDeNotificacion
+{
+    void Enviar(string mensaje);
 }
 
 public class GestorDePedidos
