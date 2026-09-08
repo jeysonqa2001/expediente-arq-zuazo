@@ -53,40 +53,37 @@ public interface IServiciosDeNotificacion
     void Enviar(string mensaje);
 }
 
+// 2. Curar DIP: MDependencias se inyectan por un constructor
 public class GestorDePedidos
 {
+    private readonly IRepositorioDePedidos _repositorio;
+    private readonly IServicioDeNotificacion _notificacion;
+
+    public GestorDePedidos(IRepositorioDePedidos repositorio, IServicioDeNotificacion notificacion)
+    {
+        _repositorio = repositorio;
+        _notificacion = notificacion;
+    }
+
     public void ProcesarPedido(string cliente, string tipoCliente, string material, int cantidad, decimal precioUnitario)
     {
         decimal total = cantidad * precioUnitario;
-
-        decimal descuento;
-        switch (tipoCliente)
+        decimal descuento = tipoCliente switch
         {
-            case "particular":
-                descuento = 0;
-                break;
-            case "contratista":
-                descuento = total * 0.15m;
-                break;
-            case "constructora":
-                descuento = total * 0.25m;
-                break;
-            default:
-                descuento = 0;
-                break;
-        }
+            "contratista" => total * 0.15m,
+            "constructora" => total * 0.25m,
+            _ => 0m
+        };
         decimal totalFinal = total - descuento;
 
-        var baseDeDatos = new BaseDeDatosMySql();
-        baseDeDatos.GuardarPedido(cliente, material, cantidad, totalFinal);
+        _repositorio.GuardarPedido(cliente, material, cantidad, totalFinal);
 
         Console.WriteLine("----- COMPROBANTE -----");
         Console.WriteLine($"{cantidad} x {material}");
         Console.WriteLine($"Cliente: {cliente} ({tipoCliente})");
         Console.WriteLine($"TOTAL: {totalFinal:0.00} Bs");
 
-        var correo = new CorreoSmtp();
-        correo.Enviar($"Su pedido de {material} fue registrado, {cliente}");
+        _notificacion.Enviar($"Su pedido de {material} fue registrado, {cliente}");
     }
 }
 
