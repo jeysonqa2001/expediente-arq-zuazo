@@ -11,6 +11,7 @@
 //Refactor: Jeyson Wilfredo Zuazo Mamani
 namespace Parcial1.Ferreteria;
 
+// 1. Cura ISP: Se separo las interfaces
 public interface IRegistradorDePedidos
 {
     void RegistrarPedido(string material, int cantidad);
@@ -41,6 +42,7 @@ public class Vendedor : IRegistradorDePedidos
         => Console.WriteLine($"[VEND] Pedido: {cantidad} x {material}");
 }
 
+// Abstraciones iniciales DIP
 public interface IRepositorioDePedidos
 {
     void GuardarPedido(string cliente, string material, int cantidad, decimal total);
@@ -63,6 +65,7 @@ public class CorreoSmtp : IServiciosDeNotificacion
         => Console.WriteLine($"[SMTP] {mensaje}");
 }
 
+// 2. Curar DIP: MDependencias se inyectan por un constructor
 public class GestorDePedidos
 {
     private readonly IRepositorioDePedidos _repositorio;
