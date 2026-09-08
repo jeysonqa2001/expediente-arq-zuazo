@@ -2,6 +2,12 @@
 // Sistema de pedidos de materiales. El código FUNCIONA, pero su diseño tiene
 // 4 violaciones de principios SOLID. Tu trabajo: encontrarlas y curar dos.
 
+
+//Refactorisar
+// Aplicacion de principio SOLID
+// 1. ISP (Segmentacion de Interfacees), Se separo IEmpleadoDeFerreteria en 2: IRegistradorDePedidos y IEncargadoDeFerreteria.
+// 2. DIP (Inversion de Dependencias), Se crearon 2 interfaces: IRepositorioDePedidos y IServiciosDeNotificacion, conectandolas a GFestorDePedidos.
+
 namespace Parcial1.Ferreteria;
 
 public interface IEmpleadoDeFerreteria
