@@ -11,8 +11,7 @@
 //Refactor: Jeyson Wilfredo Zuazo Mamani
 namespace Parcial1.Ferreteria;
 
-// 1. Cura ISP: Se separo las interfaces
-public interface IEmpleadoDeFerreteria
+public interface IRegistradorDePedidos
 {
     void RegistrarPedido(string material, int cantidad);
 }
@@ -24,7 +23,7 @@ public interface IEncargadoDeFerreteria : IRegistradorDePedidos
     void VerReporteDeCompras();
 }
 
-public class Encargado : IEmpleadoDeFerreteria
+public class Encargado : IEncargadoDeFerreteria
 {
     public void RegistrarPedido(string material, int cantidad)
         => Console.WriteLine($"[ENC] Pedido: {cantidad} x {material}");
@@ -36,13 +35,12 @@ public class Encargado : IEmpleadoDeFerreteria
         => Console.WriteLine("[ENC] Reporte de compras del mes");
 }
 
-public class Vendedor : IEmpleadoDeFerreteria
+public class Vendedor : IRegistradorDePedidos
 {
     public void RegistrarPedido(string material, int cantidad)
         => Console.WriteLine($"[VEND] Pedido: {cantidad} x {material}");
 }
 
-// Abstraciones iniciales DIP
 public interface IRepositorioDePedidos
 {
     void GuardarPedido(string cliente, string material, int cantidad, decimal total);
@@ -53,13 +51,24 @@ public interface IServiciosDeNotificacion
     void Enviar(string mensaje);
 }
 
-// 2. Curar DIP: MDependencias se inyectan por un constructor
+public class BaseDeDatosMySql : IRepositorioDePedidos
+{
+    public void GuardarPedido(string cliente, string material, int cantidad, decimal total)
+        => Console.WriteLine($"[MYSQL] INSERT INTO pedidos VALUES ('{cliente}', '{material}', {cantidad}, {total})");
+}
+
+public class CorreoSmtp : IServiciosDeNotificacion
+{
+    public void Enviar(string mensaje)
+        => Console.WriteLine($"[SMTP] {mensaje}");
+}
+
 public class GestorDePedidos
 {
     private readonly IRepositorioDePedidos _repositorio;
-    private readonly IServicioDeNotificacion _notificacion;
+    private readonly IServiciosDeNotificacion _notificacion;
 
-    public GestorDePedidos(IRepositorioDePedidos repositorio, IServicioDeNotificacion notificacion)
+    public GestorDePedidos(IRepositorioDePedidos repositorio, IServiciosDeNotificacion notificacion)
     {
         _repositorio = repositorio;
         _notificacion = notificacion;
@@ -87,22 +96,14 @@ public class GestorDePedidos
     }
 }
 
-public class BaseDeDatosMySql
-{
-    public void GuardarPedido(string cliente, string material, int cantidad, decimal total)
-        => Console.WriteLine($"[MYSQL] INSERT INTO pedidos VALUES ('{cliente}', '{material}', {cantidad}, {total})");
-}
-
-public class CorreoSmtp
-{
-    public void Enviar(string mensaje)
-        => Console.WriteLine($"[SMTP] {mensaje}");
-}
-
 public static class Demo
 {
     public static void Correr()
     {
-        new GestorDePedidos().ProcesarPedido("Marco", "contratista", "Cemento 50kg", 10, 62.00m);
+        var repo = new BaseDeDatosMySql();
+        var notif = new CorreoSmtp();
+        var gestor = new GestorDePedidos(repo, notif);
+
+        gestor.ProcesarPedido("Jeyson", "contratista", "Cemento 50kg", 10, 62.00m);
     }
 }
