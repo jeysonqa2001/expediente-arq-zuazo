@@ -4,17 +4,6 @@ declare(strict_types=1);
 
 namespace App\ConObserver;
 
-/**
- * RegistroVentas (observador 3)
- *
- * Tercer observador, agregado justamente para demostrar el valor
- * del patron: NO hubo que modificar ni una linea de Venta para
- * sumarlo. Solo se creo esta clase y se suscribio en el demo.
- *
- * Lleva el acumulado del dia para el reporte de caja.
- *
- * SRP: solo acumula cifras. No manda correos ni toca inventario.
- */
 final class RegistroVentas implements ObservadorVenta
 {
     private int $cantidadVentas = 0;

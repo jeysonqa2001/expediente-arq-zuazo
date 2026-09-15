@@ -4,15 +4,6 @@ declare(strict_types=1);
 
 namespace App\ConObserver;
 
-/**
- * NotificadorCliente (observador 1)
- *
- * Es "el aviso al cliente" que pide la consigna: cuando la venta
- * se confirma, le manda el detalle de su compra por correo.
- *
- * SRP: solo se encarga de comunicar al cliente. No toca inventario
- * ni lleva estadisticas.
- */
 final class NotificadorCliente implements ObservadorVenta
 {
     public function alConfirmarVenta(Venta $venta): void

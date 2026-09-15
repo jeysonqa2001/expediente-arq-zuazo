@@ -4,14 +4,6 @@ declare(strict_types=1);
 
 namespace App\ConObserver;
 
-/**
- * Producto
- *
- * SRP: solo conoce sus propios datos (id, sku, nombre, precio).
- * No calcula subtotales de venta ni conoce el inventario; eso es
- * responsabilidad de otras clases (ItemVenta, Inventario), lo cual
- * mantiene a Producto simple y reutilizable en cualquier contexto.
- */
 final class Producto
 {
     public function __construct(

@@ -4,19 +4,6 @@ declare(strict_types=1);
 
 namespace App\ConObserver;
 
-/**
- * ControlInventario (observador 2)
- *
- * Este es "quien mas se beneficia de enterarse": en una tienda de
- * alimentos, cada venta confirmada debe descontar stock de forma
- * automatica. Si no fuera por el Observer, la clase Venta tendria
- * que conocer al inventario y llamarlo a mano, acoplandolos.
- *
- * Ademas avisa cuando un producto queda por debajo del minimo, que
- * en alimentos es critico por la rotacion y el vencimiento.
- *
- * SRP: solo administra stock. No manda correos ni hace reportes.
- */
 final class ControlInventario implements ObservadorVenta
 {
     private const STOCK_MINIMO = 5;
