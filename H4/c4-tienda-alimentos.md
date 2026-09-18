@@ -24,12 +24,10 @@ flowchart TD
     Sistema -->|envía comprobantes y avisos| Correo
     Correo -->|entrega el aviso| Cliente
 ```
+
 ---
 
 ## Nivel 2 — Contenedores (el zoom adentro del sistema) — *borrador*
-
-*Nota: este nivel es un borrador. El curso no exige bajar a nivel 3-4 (componentes/clases individuales) — esa parte ya está resuelta como código en `h3/`.*
-
 
 **La pregunta que responde:** ¿de qué piezas ejecutables/almacenes está hecho el sistema?
 Cada contenedor es algo que corre o almacena: la app, la base de datos, un servicio.
@@ -57,3 +55,13 @@ flowchart TD
     Logica -->|cobra en línea| Pasarela
     Avisos --> Correo
 ```
+
+## Cómo se conecta con todo lo que ya hiciste
+
+- **Los actores del Nivel 1 son los del H1.** Cajero, Administrador y Cliente son exactamente los mismos roles que ya definiste ahí (los que en tu diagrama original salían como subtipos de `Usuario`: Cliente, Cajero, Administrador).
+
+- **El "Servicio de avisos" del Nivel 2 es tu Observer del H3.** Es literalmente `con-observer/` funcionando: cuando `ControlInventario` detecta que un producto bajó del stock mínimo, ese aviso es lo que en este diagrama sale como "publica evento stock-bajo" hacia el Servicio de correo — mismo mecanismo, ahora dibujado.
+
+- **La pasarela de pago externa del Nivel 1 es la frontera donde vive tu Adapter.** Es el mismo límite que ya resolviste en `con-adapter/`: `AdaptadorPasarelaTarjeta` es justo la pieza que traduce entre tu Lógica de negocio y esa caja externa que aparece en ambos niveles del diagrama.
+
+- **El diagrama vive EN EL REPO.** Al estar en Mermaid dentro de un `.md`, si mañana cambias el sistema (agregas un nuevo sistema externo, o cambias de PHP a otra tecnología), editas este mismo archivo y el diagrama se actualiza con el commit — es "diagrama como código": documentación que no se desactualiza guardada en un cajón aparte.
