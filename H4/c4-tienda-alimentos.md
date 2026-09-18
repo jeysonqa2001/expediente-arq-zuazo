@@ -24,16 +24,36 @@ flowchart TD
     Sistema -->|envía comprobantes y avisos| Correo
     Correo -->|entrega el aviso| Cliente
 ```
+---
 
-## Elementos de este nivel
+## Nivel 2 — Contenedores (el zoom adentro del sistema) — *borrador*
 
-| Elemento | Tipo | Rol |
-|---|---|---|
-| Cajero | Persona | Registra las ventas del día a día |
-| Administrador | Persona | Gestiona catálogo de productos y ajusta stock/precios |
-| Sistema de Tienda de Alimentos | MI sistema | La caja única — todavía no se abre |
-| Pasarela de pago | Sistema externo | Cobra pagos con tarjeta (resuelto con Adapter en `con-adapter/`) |
-| Servicio de correo | Sistema externo | Entrega los comprobantes y alertas de stock |
-| Cliente | Persona | Recibe el comprobante de su compra y avisos |
+*Nota: este nivel es un borrador. El curso no exige bajar a nivel 3-4 (componentes/clases individuales) — esa parte ya está resuelta como código en `h3/`.*
 
-**Regla de oro del nivel 1:** si aparece una base de datos o un módulo interno, ya me pasé de zoom — eso es Nivel 2.
+
+**La pregunta que responde:** ¿de qué piezas ejecutables/almacenes está hecho el sistema?
+Cada contenedor es algo que corre o almacena: la app, la base de datos, un servicio.
+
+```mermaid
+flowchart TD
+    Cajero["👤 Cajero"]
+    Administrador["👤 Administrador"]
+
+    subgraph Sistema["🏪 SISTEMA DE TIENDA DE ALIMENTOS"]
+        App["🌐 Aplicación<br/>PHP<br/>Pantallas de venta, stock y reportes"]
+        Logica["⚙️ Lógica de negocio<br/>PHP<br/>Ventas, descuentos, control de stock<br/>(acá viven SOLID y los patrones)"]
+        BD[("🗄️ Base de datos<br/>SQL<br/>Productos, ventas, movimientos")]
+        Avisos["🔔 Servicio de avisos<br/>PHP<br/>Observer: publica stock-bajo<br/>a los suscriptores"]
+    end
+
+    Pasarela["💳 Pasarela de pago<br/>(externa)"]
+    Correo["📧 Servicio de correo<br/>(externo)"]
+
+    Cajero --> App
+    Administrador --> App
+    App --> Logica
+    Logica --> BD
+    Logica -->|publica evento stock-bajo| Avisos
+    Logica -->|cobra en línea| Pasarela
+    Avisos --> Correo
+```
