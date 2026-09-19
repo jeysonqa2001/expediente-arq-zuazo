@@ -1,36 +1,38 @@
 # Modelo C4 — Sistema de Tienda de Alimentos
 
-## Nivel 1 — Contexto (el sistema y su mundo)
-
+## Nivel 1 
 
 **La pregunta que responde:** ¿quién usa el sistema y con qué otros sistemas habla?
-Una caja para MI sistema; personas y sistemas externos alrededor. Nada de detalles internos.
+Las personas que usan el sistema son, personal contratado por la tienda o el mismo dueño que operara el sistema con rol administrador..
 
 ```mermaid
 %%{init: {'theme': 'neutral'}}%%
 flowchart TD
-    Cajero["👤 Cajero<br/>(registra ventas)"]
-    Administrador["👤 Administrador<br/>(gestiona catálogo y stock)"]
+    Cliente["👤 Cliente<br/>(compra y paga con tarjeta)"]
+    Cajero["👤 Cajero<br/>(registra la venta)"]
+    Administrador["👤 Administrador<br/>(define catálogo y stock mínimo)"]
 
-    Sistema["🏪 SISTEMA DE TIENDA DE ALIMENTOS<br/>Registra ventas, aplica descuentos,<br/>controla stock y avisa cuando algo se agota"]
+    Sistema["🏪 SISTEMA DE TIENDA DE ALIMENTOS<br/>Registra la venta, cobra con tarjeta<br/>y, solo si el pago es aprobado,<br/>notifica y controla stock"]
 
     Pasarela["💳 Pasarela de pago<br/>(externa)"]
     Correo["📧 Servicio de correo<br/>(externo)"]
-    Cliente["👤 Cliente<br/>(recibe comprobantes y avisos)"]
+    Proveedor["🚚 Proveedor de alimentos<br/>(externo, repone mercadería)"]
 
-    Cajero -->|registra ventas| Sistema
-    Administrador -->|gestiona catálogo y stock| Sistema
-    Sistema -->|cobra en línea| Pasarela
-    Sistema -->|envía comprobantes y avisos| Correo
-    Correo -->|entrega el aviso| Cliente
+    Cliente -->|realiza su compra| Cajero
+    Cajero -->|registra la venta| Sistema
+    Administrador -->|gestiona catálogo y stock mínimo| Sistema
+
+    Sistema -->|cobra con tarjeta| Pasarela
+    Sistema -->|si el pago fue aprobado: envía comprobante| Correo
+    Sistema -->|si el pago fue aprobado y hay stock bajo: pide reposición| Proveedor
+
+    Correo -->|entrega el comprobante| Cliente
 ```
 
----
-
-## Nivel 2 — Contenedores (el zoom adentro del sistema) — *borrador*
+## Nivel 2
 
 **La pregunta que responde:** ¿de qué piezas ejecutables/almacenes está hecho el sistema?
-Cada contenedor es algo que corre o almacena: la app, la base de datos, un servicio.
+Base de Datos, conexion con siat para emitir la facturas a los clientes.
 
 ```mermaid
 flowchart TD
@@ -38,10 +40,15 @@ flowchart TD
     Administrador["👤 Administrador"]
 
     subgraph Sistema["🏪 SISTEMA DE TIENDA DE ALIMENTOS"]
-        App["🌐 Aplicación<br/>PHP<br/>Pantallas de venta, stock y reportes"]
-        Logica["⚙️ Lógica de negocio<br/>PHP<br/>Ventas, descuentos, control de stock<br/>(acá viven SOLID y los patrones)"]
-        BD[("🗄️ Base de datos<br/>SQL<br/>Productos, ventas, movimientos")]
-        Avisos["🔔 Servicio de avisos<br/>PHP<br/>Observer: publica stock-bajo<br/>a los suscriptores"]
+        App["🌐 Aplicación<br/>PHP<br/>Pantallas de venta"]
+
+        Ventas["⚙️ Módulo Ventas<br/>PHP · Venta, ItemVenta, Producto<br/>h3/base/"]
+
+        Pagos["💳 Módulo Pagos<br/>PHP · ProcesadorPago<br/>Adapter · AdaptadorPasarelaTarjeta"]
+
+        Avisos["🔔 Servicio de avisos<br/>PHP · ObservadorVenta<br/>Observer · NotificadorCliente,<br/>ControlInventario"]
+
+        BD[("🗄️ Base de datos<br/>SQL<br/>Productos, ventas, stock")]
     end
 
     Pasarela["💳 Pasarela de pago<br/>(externa)"]
@@ -49,19 +56,21 @@ flowchart TD
 
     Cajero --> App
     Administrador --> App
-    App --> Logica
-    Logica --> BD
-    Logica -->|publica evento stock-bajo| Avisos
-    Logica -->|cobra en línea| Pasarela
+    App --> Ventas
+    Ventas --> BD
+    Ventas -->|1: intenta cobrar| Pagos
+    Pagos -->|cobra con tarjeta| Pasarela
+    Pagos -.->|pago aprobado| Ventas
+    Ventas -->|2: SOLO si el pago fue aprobado, notifica| Avisos
     Avisos --> Correo
 ```
 
-## Cómo se conecta con todo lo que ya hiciste
+## Cómo se conecta
 
-- **Los actores del Nivel 1 son los del H1.** Cajero, Administrador y Cliente son exactamente los mismos roles que ya definiste ahí (los que en tu diagrama original salían como subtipos de `Usuario`: Cliente, Cajero, Administrador).
+- **Cobro a los clientes.** `Módulo Pagos` traduce esa llamada hacia la Pasarela externa a través de `AdaptadorPasarelaTarjeta` — exactamente el código de `h3/final/AdaptadorPasarelaTarjeta.php`.
 
-- **El "Servicio de avisos" del Nivel 2 es tu Observer del H3.** Es literalmente `con-observer/` funcionando: cuando `ControlInventario` detecta que un producto bajó del stock mínimo, ese aviso es lo que en este diagrama sale como "publica evento stock-bajo" hacia el Servicio de correo — mismo mecanismo, ahora dibujado.
+- **Pago aprobados pasa a notificacion"** No es una flecha decorativa: en el código, `Venta::confirmar()` literalmente hace este chequeo antes de llamar a `notificar()`. Si el pago es rechazado, esa segunda flecha nunca se dispara — ni el Cliente recibe comprobante, ni el Proveedor recibe pedido de reposición.
 
-- **La pasarela de pago externa del Nivel 1 es la frontera donde vive tu Adapter.** Es el mismo límite que ya resolviste en `con-adapter/`: `AdaptadorPasarelaTarjeta` es justo la pieza que traduce entre tu Lógica de negocio y esa caja externa que aparece en ambos niveles del diagrama.
+- **Los dos niveles usan el mismo lenguaje que el código** "Módulo Pagos", "Servicio de avisos" y "Módulo Ventas" no son nombres inventados para el diagrama — son, literalmente, cómo se llaman las responsabilidades dentro de Venta.php, AdaptadorPasarelaTarjeta.php y los observadores. Cualquiera que lea el código reconoce las mismas piezas en el dibujo..
 
-- **El diagrama vive EN EL REPO.** Al estar en Mermaid dentro de un `.md`, si mañana cambias el sistema (agregas un nuevo sistema externo, o cambias de PHP a otra tecnología), editas este mismo archivo y el diagrama se actualiza con el commit — es "diagrama como código": documentación que no se desactualiza guardada en un cajón aparte.
+- **El orden de las cajas en el Nivel 2 es el orden real de ejecución.** Ventas -> Pagos -> Pasarela y despues Ventas -> Avisos -> Correo no es un orden decorativo: es exactamente la secuencia de Venta::confirmar() en h3/final/Venta.php -- primero se cobra, despues (solo si se aprobo) se notifica. El diagrama se puede leer de arriba hacia abajo como si fuera el propio metodo.
