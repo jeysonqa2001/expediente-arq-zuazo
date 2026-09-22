@@ -20,41 +20,18 @@ classDiagram
         ANULADA
     }
 
-    class Vehiculo {
-        -string placa
-        -TipoVehiculo tipo
-        +getTipo() TipoVehiculo
+    class GestorDeEstadias {
+        +registrarEntrada(string placa, string tipo) void
+        +registrarSalida(string placa, string tipoVehiculo, int horas) void
     }
 
-    class Estadia {
-        -DateTime horaEntrada
-        -DateTime horaSalida
-        -EstadoEstadia estado
-        -decimal montoTotal
-        +calcularMonto() float
-        +anular() void
+    class IRepositorioEstadias {
+        <<interface>>
+        +guardarEstadia(string placa, string tipo, int horas, decimal total) void
     }
 
-    class Tarifa {
-        -float precioPorHora
-        +actualizarTarifa(float nuevoPrecio) void
-    }
-
-    class Usuario {
-        <<abstract>>
-        #string id
-        #string nombre
-    }
-
-    class Portero {
-        +registrarEntrada(Vehiculo v) Estadia
-        +registrarSalida(Estadia e) void
-    }
-
-    class Administrador {
-        +ajustarTarifa(Tarifa t, float precio) void
-        +anularEstadia(Estadia e) void
-        +generarReporteIngresos() Reporte
+    class BaseDeDatosParqueo {
+        +guardarEstadia(string placa, string tipo, int horas, decimal total) void
     }
 
     class IObservadorEstadia {
@@ -62,15 +39,20 @@ classDiagram
         +notificarExcesoTiempo(string placa, float horas) void
     }
 
-    class ServicioNotificacionOwner {
+    class WhatsAppDelEdificio {
+        +enviar(string mensaje) void
         +notificarExcesoTiempo(string placa, float horas) void
     }
 
-    Usuario <|-- Portero : Hereda
-    Usuario <|-- Administrador : Hereda
-    Estadia "1" --> "1" Vehiculo : Registra
-    Estadia "1" --> "1" EstadoEstadia : Posee
-    Vehiculo "1" --> "1" TipoVehiculo : Clasificado como
-    Administrador ..> Tarifa : Ajusta
-    ServicioNotificacionOwner ..|> IObservadorEstadia : Implementa
-    Estadia "1" o-- "*" IObservadorEstadia : Notifica (> 24h)
+    class Tarifa {
+        -decimal tarifaPorHora
+        +actualizarTarifa(decimal tarifa) void
+    }
+
+    BaseDeDatosParqueo ..|> IRepositorioEstadias : Implementa
+    WhatsAppDelEdificio ..|> IObservadorEstadia : Implementa
+    GestorDeEstadias --> IRepositorioEstadias : Usa
+    GestorDeEstadias --> IObservadorEstadia : Notifica
+    GestorDeEstadias ..> TipoVehiculo : Utiliza
+    GestorDeEstadias ..> EstadoEstadia : Utiliza
+    GestorDeEstadias ..> Tarifa : Consulta
